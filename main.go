@@ -1,72 +1,31 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-type student struct {
-	ID    string
-	Name  string
-	NIM   int
-	Prodi string
+type album struct {
+	ID     int     `json:"id"`
+	Title  string  `json:"title"`
+	Artist string  `json:"artist"`
+	Price  float64 `json:"price"`
 }
 
-var data = []student{
-	{"K001", "Eshan", 1092, "TI"},
+var albums = []album{
+	{ID: 1, Title: "Blue Eyes", Artist: "Michael", Price: 24.99},
+	{ID: 2, Title: "Kiss Me", Artist: "Arnold", Price: 24.99},
+	{ID: 3, Title: "In the sky", Artist: "Julian", Price: 24.99},
 }
 
-func users(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content Type", "application/json")
-	if r.Method == "GET" {
-		var result, err = json.Marshal(data)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Write(result)
-		return
-	}
-
-	http.Error(w, "", http.StatusBadRequest)
-}
-
-func user(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	if r.Method == "GET" {
-		var id = r.FormValue("id")
-		var result []byte
-		var err error
-
-		for _, each := range data {
-			if each.ID == id {
-				result, err = json.Marshal(each)
-
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-
-				w.Write(result)
-				return
-			}
-		}
-
-		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
-
-	http.Error(w, "", http.StatusBadRequest)
+func getAlbums(c *gin.Context) {
+	c.JSON(http.StatusOK, albums)
 }
 
 func main() {
-	http.HandleFunc("/users", users)
-	http.HandleFunc("/user", user)
+	router := gin.Default()
+	router.GET("/albums", getAlbums)
 
-	fmt.Println("starting web server at http://localhost:8080/")
-	http.ListenAndServe(":8080", nil)
+	router.Run("localhost:8080")
 }
